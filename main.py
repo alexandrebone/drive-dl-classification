@@ -12,13 +12,13 @@ def load_train_database():
     path_to_train_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'training')
 
     path_to_images = os.path.join(path_to_train_database, 'images')
-    images = [load_image(path) for path in os.listdir(path_to_images) if path[-3:] == 'tif']
+    images = [load_image(os.path.join(path_to_images, path)) for path in os.listdir(path_to_images) if path[-3:] == 'tif']
 
     path_to_masks = os.path.join(path_to_train_database, 'mask')
-    masks = [load_image(path) for path in os.listdir(path_to_masks) if path[-3:] == 'tif']
+    masks = [load_image(os.path.join(path_to_masks, path)) for path in os.listdir(path_to_masks) if path[-3:] == 'tif']
 
     path_to_targets = os.path.join(path_to_train_database, '1st_manual')
-    targets = [load_image(path) for path in os.listdir(path_to_targets) if path[-3:] == 'tif']
+    targets = [load_image(os.path.join(path_to_targets, path)) for path in os.listdir(path_to_targets) if path[-3:] == 'tif']
 
     return images, masks, targets
 
