@@ -85,7 +85,7 @@ model.add(Dense(units=4096, activation='relu'))
 model.add(Dense(units=4096, activation='relu'))
 model.add(Dense(units=patch_size ** 2, activation='relu'))
 model.add(Dense(patch_size ** 2, activation='softmax'))
-model.compile(loss=keras.losses.categorical_crossentropy,
+model.compile(loss=keras.losses.mean_squared_error,
               optimizer=keras.optimizers.SGD(lr=0.01, momentum=0.9, nesterov=True))
 
 targets_flat = []
