@@ -10,6 +10,8 @@ from keras.layers import Flatten
 from keras.layers import Dense
 import keras
 
+import _pickle as pickle
+
 
 def load_image(image_path):
     image = Image.open(image_path)
@@ -95,3 +97,6 @@ targets_flat = np.array(targets_flat)
 
 # model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
 model.fit(x=np.array(image_patches), epochs=25, y=np.array(targets_flat))
+pickle.dump(model, open('fitted_model.p', 'wb'))
+
+# d = pickle.load(open('fitted_model', 'rb'))
