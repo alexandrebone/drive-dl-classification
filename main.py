@@ -48,10 +48,10 @@ def cut_into_patches(images, targets, patch_size=100):
         extraction_step=patch_size).reshape([-1, patch_size, patch_size])
 
     for (image, target) in zip(images[1:], targets[1:]):
-        np.append(image_patches, feature_extraction.image.extract_patches(
+        image_patches = np.append(image_patches, feature_extraction.image.extract_patches(
             image, patch_shape=(patch_size, patch_size, 3),
             extraction_step=patch_size).reshape([-1, patch_size, patch_size, 3]), axis=0)
-        np.append(target_patches, feature_extraction.image.extract_patches(
+        target_patches = np.append(target_patches, feature_extraction.image.extract_patches(
             target, patch_shape=(patch_size, patch_size),
             extraction_step=patch_size).reshape([-1, patch_size, patch_size]), axis=0)
 
@@ -63,8 +63,6 @@ images = remove_mean(images)
 
 patch_size = 100
 image_patches, target_patches = cut_into_patches(images, targets, patch_size)
-
-print('End')
 
 model = Sequential()
 model.add(Conv2D(64, (3, 3), input_shape=(patch_size, patch_size, 3), activation='relu', strides=1, padding='same'))
