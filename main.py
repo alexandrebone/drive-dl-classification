@@ -8,7 +8,7 @@ def load_image(image_path):
     image = Image.open(image_path)
     return np.array(image)
 
-def load_train_database:
+def load_train_database():
     path_to_train_database = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'training')
 
     path_to_images = os.path.join(path_to_train_database, 'images')
@@ -22,3 +22,6 @@ def load_train_database:
 
     return images, masks, targets
 
+images, masks, targets = load_train_database()
+
+print('End')
