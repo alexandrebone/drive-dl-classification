@@ -10,6 +10,7 @@ from keras.layers import Flatten
 from keras.layers import Dense
 import keras
 
+
 def load_image(image_path):
     image = Image.open(image_path)
     return np.array(image).astype('float64')
@@ -27,7 +28,7 @@ def load_train_database():
              for path in os.listdir(path_to_masks) if path[-3:] == 'gif']
 
     path_to_targets = os.path.join(path_to_train_database, '1st_manual')
-    targets = [load_image(os.path.join(path_to_targets, path)).ravel()
+    targets = [load_image(os.path.join(path_to_targets, path))
                for path in os.listdir(path_to_targets) if path[-3:] == 'gif']
 
     return images, masks, targets
@@ -39,7 +40,6 @@ def remove_mean(images):
 
 
 def cut_into_patches(images, targets, patch_size=100):
-
     image_patches = feature_extraction.image.extract_patches(
         images[0], patch_shape=(patch_size, patch_size, 3),
         extraction_step=patch_size).reshape([-1, patch_size, patch_size, 3])
@@ -47,44 +47,53 @@ def cut_into_patches(images, targets, patch_size=100):
         targets[0], patch_shape=(patch_size, patch_size),
         extraction_step=patch_size).reshape([-1, patch_size, patch_size])
 
-    for (image, target) in enumerate(zip(images[1:], targets[1:])):
-        np.append(image_patches, feature_extraction.image.extract_patches(image, patch_shape=(patch_size, patch_size, 3), extraction_step=patch_size).reshape([-1, patch_size, patch_size, 3]), axis=0)
-        np.append(target_patches, feature_extraction.image.extract_patches(target, patch_shape=(patch_size, patch_size), extraction_step=patch_size).reshape([-1, patch_size, patch_size]), axis=0)
+    for (image, target) in zip(images[1:], targets[1:]):
+        np.append(image_patches, feature_extraction.image.extract_patches(
+            image, patch_shape=(patch_size, patch_size, 3),
+            extraction_step=patch_size).reshape([-1, patch_size, patch_size, 3]), axis=0)
+        np.append(target_patches, feature_extraction.image.extract_patches(
+            target, patch_shape=(patch_size, patch_size),
+            extraction_step=patch_size).reshape([-1, patch_size, patch_size]), axis=0)
 
     return image_patches, target_patches
 
 
 images, masks, targets = load_train_database()
 images = remove_mean(images)
-# image_patches, target_patches = cut_into_patches(images, targets)
+
+patch_size = 100
+image_patches, target_patches = cut_into_patches(images, targets, patch_size)
 
 print('End')
 
 model = Sequential()
-model.add(Conv2D(64, (3, 3), input_shape = (584, 565, 3), activation = 'relu',strides=1, padding='same'))
-model.add(MaxPooling2D(pool_size = (2, 2),strides=2))
-model.add(Conv2D(128, (3, 3), activation = 'relu',strides=1, padding='same'))
-model.add(MaxPooling2D(pool_size = (2, 2),strides=2))
-model.add(Conv2D(256, (3, 3), activation = 'relu',strides=1, padding='same'))
-model.add(Conv2D(256, (3, 3), activation = 'relu',strides=1, padding='same'))
-model.add(MaxPooling2D(pool_size = (2, 2),strides=2))
+model.add(Conv2D(64, (3, 3), input_shape=(patch_size, patch_size, 3), activation='relu', strides=1, padding='same'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+model.add(Conv2D(128, (3, 3), activation='relu', strides=1, padding='same'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+model.add(Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))
+model.add(Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
 
-model.add(Conv2D(512, (3, 3),  activation = 'relu',strides=1, padding='same'))
-model.add(Conv2D(512, (3, 3),  activation = 'relu',strides=1, padding='same'))
-model.add(MaxPooling2D(pool_size = (2, 2),strides=2))
-model.add(Conv2D(512, (3, 3),  activation = 'relu',strides=1, padding='same'))
-model.add(Conv2D(512, (3, 3),  activation = 'relu',strides=1, padding='same'))
-model.add(MaxPooling2D(pool_size = (2, 2),strides=2))
+model.add(Conv2D(512, (3, 3), activation='relu', strides=1, padding='same'))
+model.add(Conv2D(512, (3, 3), activation='relu', strides=1, padding='same'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
+model.add(Conv2D(512, (3, 3), activation='relu', strides=1, padding='same'))
+model.add(Conv2D(512, (3, 3), activation='relu', strides=1, padding='same'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=2))
 
 model.add(Flatten())
 model.add(Dense(units=4096, activation='relu'))
 model.add(Dense(units=4096, activation='relu'))
-model.add(Dense(units=329960, activation='relu'))
-model.add(Dense(329960, activation='softmax'))
+model.add(Dense(units=patch_size ** 2, activation='relu'))
+model.add(Dense(patch_size ** 2, activation='softmax'))
 model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.SGD(lr=0.01, momentum=0.9, nesterov=True))
 
+targets_flat = []
+for k in range(target_patches.shape[0]):
+    targets_flat.append(target_patches[k].ravel())
+targets_flat = np.array(targets_flat)
 
-model.fit(x=np.array(images),
-epochs = 25,
-y = np.array(targets))
+# model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
+model.fit(x=np.array(image_patches), epochs=25, y=np.array(targets_flat))
