@@ -8,13 +8,15 @@ from keras.layers import Flatten
 from keras.layers import Dense
 import keras
 
-from io_functions import load_image, load_train_database, remove_mean, cut_into_patches
+from io_functions import load_train_database, remove_mean, cut_into_patches, images_to_patches
 
 images, masks, targets = load_train_database()
 images = remove_mean(images)
 
 patch_size = 100
-image_patches, target_patches = cut_into_patches(images, targets, patch_size)
+stride = 100
+image_patches = images_to_patches(images, patch_size, stride)
+target_patches = images_to_patches(targets, patch_size, stride)
 
 model = Sequential()
 model.add(Conv2D(64, (3, 3), input_shape=(patch_size, patch_size, 3), activation='relu', strides=1, padding='same'))
@@ -45,7 +47,6 @@ for k in range(target_patches.shape[0]):
     targets_flat.append(target_patches[k].ravel())
 targets_flat = np.array(targets_flat)
 
-# model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
 model.fit(x=np.array(image_patches), epochs=1, y=np.array(targets_flat))
 model.save('fitted_model.h5')
 
