@@ -51,7 +51,7 @@ def load_test_database():
 
 def compute_mean(images):
     number_of_pixels = float(images[0].shape[0] * images[0].shape[1])
-    return sum([np.sum(np.sum(image, axis=0), axis=1) / number_of_pixels for image in images]) / float(len(images))
+    return sum([np.sum(np.sum(image, axis=0), axis=0) / number_of_pixels for image in images]) / float(len(images))
 
 
 def remove_mean(images):
@@ -85,10 +85,21 @@ def images_to_patches(images, patch_size=100, stride=50):
     :param stride:
     :return:
     """
-    pass
+    padding_value = images[0][0, 0]
+    margins = (patch_size, patch_size)
+    patches = []
+    for image in images:
+        padded_image = np.zeros(image.shape + margins) + padding_value
+        i, j = 0, 0
+        while i < image.shape[0] and j < image.shape[0]:
+            patch = padded_image[i:i+patch_size, j:j+patch_size]
+            patches.append(patch)
+            i += stride
+            j += stride
 
 if __name__ == "__main__":
     images, masks, targets = load_train_database()
+    print('Mean before: ' + str(compute_mean(images)))
     images = remove_mean(images)
-    print(compute_mean(images))
+    print('Mean after: ' + str(compute_mean(images)))
 
