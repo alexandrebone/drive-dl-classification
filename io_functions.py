@@ -77,7 +77,7 @@ def cut_into_patches(images, targets, patch_size=100):
 
     return image_patches, target_patches
 
-def images_to_patches(images, patch_size=100, stride=50):
+def images_to_patches(images, patch_size=100, stride=100):
     """
     Zero padding.
     :param images: List of numpy 2D or 3D arrays (black & white or color).
@@ -86,20 +86,26 @@ def images_to_patches(images, patch_size=100, stride=50):
     :return:
     """
     padding_value = images[0][0, 0]
-    margins = (patch_size, patch_size)
+    padded_shape = (images[0].shape[0] + patch_size, images[0].shape[1] + patch_size)
+    if len(images[0].shape) == 3: padded_shape += (images[0].shape[2],)
     patches = []
     for image in images:
-        padded_image = np.zeros(image.shape + margins) + padding_value
-        i, j = 0, 0
-        while i < image.shape[0] and j < image.shape[0]:
-            patch = padded_image[i:i+patch_size, j:j+patch_size]
-            patches.append(patch)
-            i += stride
-            j += stride
+        padded_image = np.zeros(padded_shape) + padding_value
+        padded_image[0:image.shape[0], 0:image.shape[1]] = image
+        for i in range(0, image.shape[0], stride):
+            for j in range(0, image.shape[1], stride):
+                patch = padded_image[i:i+patch_size, j:j+patch_size]
+                patches.append(patch)
+    return patches
 
 if __name__ == "__main__":
     images, masks, targets = load_train_database()
     print('Mean before: ' + str(compute_mean(images)))
     images = remove_mean(images)
     print('Mean after: ' + str(compute_mean(images)))
+
+    patches = images_to_patches(images)
+    print('Number of patches: ' + str(len(patches)))
+
+
 
