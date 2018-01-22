@@ -45,6 +45,11 @@ for k in range(target_patches.shape[0]):
     targets_flat.append(target_patches[k].ravel())
 targets_flat = np.array(targets_flat)
 
+images_test, masks_test, targets_test = load_test_database()
+image_test_patches, target__test_patches = cut_into_patches(images_test, targets_test, patch_size)
+targets_test_flat = np.array(targets_test_flat)
+
+
 # model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
-model.fit(x=np.array(image_patches), epochs=1, y=np.array(targets_flat))
+model.fit(x=np.array(image_patches), epochs=1, y=np.array(targets_flat),validation_data=(np.array(image_test_patches),targets_test_flat))
 # model.save('fitted_model.h5')
