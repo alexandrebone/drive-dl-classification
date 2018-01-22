@@ -110,8 +110,12 @@ if __name__ == "__main__":
     images = remove_mean(images)
     print('Mean after: ' + str(compute_mean(images)))
 
-    patches = images_to_patches(images)
+    patch_size = 50
+    stride = 1
+
+    patches = images_to_patches(images, patch_size, stride)
     print('Number of patches: ' + str(patches.shape[0]))
 
-    reconstructed_images = patches_to_images(patches, images[0].shape)
+    reconstructed_images = patches_to_images(patches, images[0].shape, patch_size, stride)
     print('Number of images: ' + str(len(reconstructed_images)))
+    print('Check for first image: ' + str((images[0] == reconstructed_images[0]).all()))
