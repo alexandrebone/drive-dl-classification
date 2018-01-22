@@ -99,4 +99,5 @@ targets_flat = np.array(targets_flat)
 model.fit(x=np.array(image_patches), epochs=25, y=np.array(targets_flat))
 pickle.dump(model, open('fitted_model.p', 'wb'))
 
-# d = pickle.load(open('fitted_model', 'rb'))
+d = pickle.load(open('fitted_model', 'rb'))
+
