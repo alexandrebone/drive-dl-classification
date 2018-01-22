@@ -104,14 +104,25 @@ def patches_to_images(patches, image_shape, patch_size=100, stride=100, number_o
     return images
 
 
+def write_image(image_array, path):
+    image = Image.fromarray(np.uint8(image_array * 255))
+    image.save(path)
+
+
+def save_predictions(predictions, patch_size=100, output_directory=''):
+    for k, prediction in enumerate(predictions):
+        write_image(prediction.reshape((patch_size, patch_size)),
+                    os.path.join(output_directory, str(k+1) + 'prediction'))
+
+
 if __name__ == "__main__":
     images, masks, targets = load_train_database()
     print('Mean before: ' + str(compute_mean(images)))
     images = remove_mean(images)
     print('Mean after: ' + str(compute_mean(images)))
 
-    patch_size = 50
-    stride = 1
+    patch_size = 100
+    stride = 100
 
     patches = images_to_patches(images, patch_size, stride)
     print('Number of patches: ' + str(patches.shape[0]))
@@ -119,3 +130,5 @@ if __name__ == "__main__":
     reconstructed_images = patches_to_images(patches, images[0].shape, patch_size, stride)
     print('Number of images: ' + str(len(reconstructed_images)))
     print('Check for first image: ' + str((images[0] == reconstructed_images[0]).all()))
+
+    write_image(targets[0] / 255, 'test.jpg')
