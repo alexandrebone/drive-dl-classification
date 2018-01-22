@@ -10,6 +10,8 @@ from keras.layers import Flatten
 from keras.layers import Dense
 import keras
 
+import _pickle as pickle
+
 
 def load_image(image_path):
     image = Image.open(image_path)
@@ -48,10 +50,10 @@ def cut_into_patches(images, targets, patch_size=100):
         extraction_step=patch_size).reshape([-1, patch_size, patch_size])
 
     for (image, target) in zip(images[1:], targets[1:]):
-        np.append(image_patches, feature_extraction.image.extract_patches(
+        image_patches = np.append(image_patches, feature_extraction.image.extract_patches(
             image, patch_shape=(patch_size, patch_size, 3),
             extraction_step=patch_size).reshape([-1, patch_size, patch_size, 3]), axis=0)
-        np.append(target_patches, feature_extraction.image.extract_patches(
+        target_patches = np.append(target_patches, feature_extraction.image.extract_patches(
             target, patch_shape=(patch_size, patch_size),
             extraction_step=patch_size).reshape([-1, patch_size, patch_size]), axis=0)
 
@@ -63,10 +65,6 @@ images = remove_mean(images)
 
 patch_size = 100
 image_patches, target_patches = cut_into_patches(images, targets, patch_size)
-
-print('End')
-g
-
 
 model = Sequential()
 model.add(Conv2D(64, (3, 3), input_shape=(patch_size, patch_size, 3), activation='relu', strides=1, padding='same'))
@@ -89,7 +87,7 @@ model.add(Dense(units=4096, activation='relu'))
 model.add(Dense(units=4096, activation='relu'))
 model.add(Dense(units=patch_size ** 2, activation='relu'))
 model.add(Dense(patch_size ** 2, activation='softmax'))
-model.compile(loss=keras.losses.categorical_crossentropy,
+model.compile(loss=keras.losses.mean_squared_error,
               optimizer=keras.optimizers.SGD(lr=0.01, momentum=0.9, nesterov=True))
 
 targets_flat = []
@@ -99,3 +97,6 @@ targets_flat = np.array(targets_flat)
 
 # model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
 model.fit(x=np.array(image_patches), epochs=25, y=np.array(targets_flat))
+pickle.dump(model, open('fitted_model.p', 'wb'))
+
+# d = pickle.load(open('fitted_model', 'rb'))
