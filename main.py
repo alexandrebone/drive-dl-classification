@@ -8,7 +8,7 @@ from keras.layers import Flatten
 from keras.layers import Dense
 import keras
 
-from io_functions import load_image, load_train_database, remove_mean, cut_into_patches
+from io_functions import load_image, load_train_database, remove_mean, cut_into_patches, load_test_database
 
 images, masks, targets = load_train_database()
 images = remove_mean(images)
@@ -40,14 +40,19 @@ model.add(Dense(patch_size ** 2, activation='softmax'))
 model.compile(loss=keras.losses.mean_squared_error,
               optimizer=keras.optimizers.SGD(lr=0.01, momentum=0.9, nesterov=True))
 
+images_test, masks_test, targets_test1, targets_test2 = load_test_database()
+image_test_patches, target__test_patches = cut_into_patches(images_test, targets_test1, patch_size)
+
 targets_flat = []
+targets_test_flat=[]
 for k in range(target_patches.shape[0]):
     targets_flat.append(target_patches[k].ravel())
+    targets_test_flat.append(target_patches[k].ravel())
 targets_flat = np.array(targets_flat)
-
-images_test, masks_test, targets_test = load_test_database()
-image_test_patches, target__test_patches = cut_into_patches(images_test, targets_test, patch_size)
 targets_test_flat = np.array(targets_test_flat)
+
+
+
 
 
 # model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
