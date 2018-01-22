@@ -47,5 +47,5 @@ targets_flat = np.array(targets_flat)
 
 # model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
 model.fit(x=np.array(image_patches), epochs=1, y=np.array(targets_flat))
-# model.save('fitted_model.h5')
+model.save('fitted_model.h5')
 

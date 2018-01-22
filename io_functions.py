@@ -59,24 +59,6 @@ def remove_mean(images):
     return [image - mean for image in images]
 
 
-def cut_into_patches(images, targets, patch_size=100):
-    image_patches = feature_extraction.image.extract_patches(
-        images[0], patch_shape=(patch_size, patch_size, 3),
-        extraction_step=patch_size).reshape([-1, patch_size, patch_size, 3])
-    target_patches = feature_extraction.image.extract_patches(
-        targets[0], patch_shape=(patch_size, patch_size),
-        extraction_step=patch_size).reshape([-1, patch_size, patch_size])
-
-    for (image, target) in zip(images[1:], targets[1:]):
-        image_patches = np.append(image_patches, feature_extraction.image.extract_patches(
-            image, patch_shape=(patch_size, patch_size, 3),
-            extraction_step=patch_size).reshape([-1, patch_size, patch_size, 3]), axis=0)
-        target_patches = np.append(target_patches, feature_extraction.image.extract_patches(
-            target, patch_shape=(patch_size, patch_size),
-            extraction_step=patch_size).reshape([-1, patch_size, patch_size]), axis=0)
-
-    return image_patches, target_patches
-
 def images_to_patches(images, patch_size=100, stride=100):
     """
     Zero padding.
@@ -94,9 +76,14 @@ def images_to_patches(images, patch_size=100, stride=100):
         padded_image[0:image.shape[0], 0:image.shape[1]] = image
         for i in range(0, image.shape[0], stride):
             for j in range(0, image.shape[1], stride):
-                patch = padded_image[i:i+patch_size, j:j+patch_size]
+                patch = padded_image[i:i + patch_size, j:j + patch_size]
                 patches.append(patch)
-    return patches
+    return np.array(patches)
+
+
+def patches_to_images(patches, number_of_images=20):
+    pass
+
 
 if __name__ == "__main__":
     images, masks, targets = load_train_database()
@@ -105,7 +92,4 @@ if __name__ == "__main__":
     print('Mean after: ' + str(compute_mean(images)))
 
     patches = images_to_patches(images)
-    print('Number of patches: ' + str(len(patches)))
-
-
-
+    print('Number of patches: ' + str(patches.shape[0]))
