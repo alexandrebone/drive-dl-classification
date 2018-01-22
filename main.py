@@ -15,6 +15,7 @@ images = remove_mean(images)
 
 patch_size = 100
 image_patches, target_patches = cut_into_patches(images, targets, patch_size)
+stride = 100
 
 model = Sequential()
 model.add(Conv2D(64, (3, 3), input_shape=(patch_size, patch_size, 3), activation='relu', strides=1, padding='same'))
