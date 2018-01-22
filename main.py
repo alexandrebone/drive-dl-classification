@@ -8,14 +8,16 @@ from keras.layers import Flatten
 from keras.layers import Dense
 import keras
 
-from io_functions import load_image, load_train_database, remove_mean, cut_into_patches, load_test_database
+from io_functions import load_image, load_train_database, remove_mean, images_to_patches, load_test_database
 
 images, masks, targets = load_train_database()
 images = remove_mean(images)
 
 patch_size = 100
-image_patches, target_patches = cut_into_patches(images, targets, patch_size)
+
 stride = 100
+image_patches= images_to_patches(images,patch_size,stride)
+target_patches= images_to_patches(targets,patch_size,stride)
 
 model = Sequential()
 model.add(Conv2D(64, (3, 3), input_shape=(patch_size, patch_size, 3), activation='relu', strides=1, padding='same'))
@@ -42,8 +44,8 @@ model.compile(loss=keras.losses.mean_squared_error,
               optimizer=keras.optimizers.SGD(lr=0.01, momentum=0.9, nesterov=True))
 
 images_test, masks_test, targets_test1, targets_test2 = load_test_database()
-image_test_patches, target__test_patches = cut_into_patches(images_test, targets_test1, patch_size)
-
+images_test_patches= images_to_patches(images_test,patch_size,stride)
+targets__test_patches= images_to_patches(targets_test1,patch_size,stride)
 targets_flat = []
 targets_test_flat=[]
 for k in range(target_patches.shape[0]):
@@ -57,5 +59,5 @@ targets_test_flat = np.array(targets_test_flat)
 
 
 # model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
-model.fit(x=np.array(image_patches), epochs=1, y=np.array(targets_flat),validation_data=(np.array(image_test_patches),targets_test_flat))
-# model.save('fitted_model.h5')
+model.fit(x=np.array(image_patches), epochs=1, y=np.array(targets_flat),validation_data=(np.array(images_test_patches),targets_test_flat))
+model.save('fitted_model.h5')
