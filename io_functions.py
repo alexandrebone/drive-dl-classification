@@ -109,10 +109,11 @@ def write_image(image_array, path):
     image.save(path)
 
 
-def save_predictions(predictions, patch_size=100, output_directory=''):
+def save_predictions(predictions, patch_size=100, output_directory='outputs'):
+    if not os.path.isdir(output_directory): os.mkdir(output_directory)
     for k, prediction in enumerate(predictions):
         write_image(prediction.reshape((patch_size, patch_size)),
-                    os.path.join(output_directory, str(k+1) + 'prediction'))
+                    os.path.join(output_directory, str(k+1) + 'prediction.jpg'))
 
 
 if __name__ == "__main__":
