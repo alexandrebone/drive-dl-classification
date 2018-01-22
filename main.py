@@ -8,7 +8,7 @@ from keras.layers import Flatten
 from keras.layers import Dense
 import keras
 
-from io_functions import load_train_database, remove_mean, cut_into_patches, images_to_patches
+from io_functions import load_train_database, remove_mean, images_to_patches
 
 images, masks, targets = load_train_database()
 images = remove_mean(images)
