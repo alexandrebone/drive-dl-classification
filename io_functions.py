@@ -81,8 +81,27 @@ def images_to_patches(images, patch_size=100, stride=100):
     return np.array(patches)
 
 
-def patches_to_images(patches, number_of_images=20):
-    pass
+def patches_to_images(patches, image_shape, patch_size=100, stride=100, number_of_images=20):
+    number_of_patches_per_image = patches.shape[0] / number_of_images
+    padded_shape = (image_shape[0] + patch_size, image_shape[1] + patch_size)
+    if len(image_shape) == 3: padded_shape += (image_shape[2],)
+    images = []
+    for k, patch in enumerate(patches):
+        if not k % number_of_patches_per_image:
+            if not k == 0: images.append(padded_image[0:image_shape[0], 0:image_shape[1]])
+            i = 0
+            j = 0
+            padded_image = np.zeros(padded_shape)
+        padded_image[i:i + patch_size, j:j + patch_size] = patch
+        j += stride
+        if j >= image_shape[1]:
+            j = 0
+            i += stride
+            if i >= image_shape[0]:
+                i = 0
+
+    images.append(padded_image[0:image_shape[0], 0:image_shape[1]])
+    return images
 
 
 if __name__ == "__main__":
@@ -91,5 +110,12 @@ if __name__ == "__main__":
     images = remove_mean(images)
     print('Mean after: ' + str(compute_mean(images)))
 
-    patches = images_to_patches(images)
+    patch_size = 50
+    stride = 1
+
+    patches = images_to_patches(images, patch_size, stride)
     print('Number of patches: ' + str(patches.shape[0]))
+
+    reconstructed_images = patches_to_images(patches, images[0].shape, patch_size, stride)
+    print('Number of images: ' + str(len(reconstructed_images)))
+    print('Check for first image: ' + str((images[0] == reconstructed_images[0]).all()))
