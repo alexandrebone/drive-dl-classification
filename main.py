@@ -9,13 +9,13 @@ from keras.layers import Flatten
 from keras.layers import Dense
 import keras
 
-from io_functions import load_train_database, remove_mean, images_to_patches, load_test_database
+from io_functions import load_train_database, remove_mean, images_to_patches, load_test_database, save_predictions
 
 images, masks, targets = load_train_database()
 images = remove_mean(images)
 
-patch_size = 580
-stride = 1000
+patch_size = 50
+stride = 50
 
 image_patches = images_to_patches(images, patch_size, stride)
 target_patches = images_to_patches(targets, patch_size, stride)
@@ -62,11 +62,30 @@ for k in range(target_patches.shape[0]):
 targets_flat = np.array(targets_flat)
 targets_test_flat = np.array(targets_test_flat)
 
-n_epochs = 100
+n_epochs = 1000
 
+# Custom callback --------------------------------------------------------------
+output_dir = 'output_' + str(patch_size) + '-' + str(stride) + '-' + str(n_epochs) + '-' + str(learning_rate) + '-categorical_crossentropy'
+output_dir_1000 = 'output_' + str(patch_size) + '-' + str(stride) + '-' + str(n_epochs) + '-' + str(learning_rate) + '-categorical_crossentropy_times1000'
+os.mkdir(output_dir)
+os.mkdir(output_dir_1000)
+
+class SaveReconstructions(keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs={}):
+        predictions = self.model.predict(image_patches)
+        print('\n>> Predictions max value: ' + str(np.max(predictions)))
+        save_predictions(predictions, targets[0].shape, patch_size, stride, output_directory=output_dir)
+        save_predictions(predictions * 1000, targets[0].shape, patch_size, stride, output_directory=output_dir_1000)
+
+# Fit --------------------------------------------------------------------------
 # model.fit(x=np.array(images), epochs = 25, y= np.array(targets))
 # model.fit(x=np.array(image_patches), epochs=25, y=np.array(targets_flat),
 #           validation_data=(np.array(images_test_patches), targets_test_flat))
-model.fit(x=np.array(image_patches), epochs=n_epochs, y=np.array(targets_flat))
-model.save('fitted_model_' + str(patch_size) + '-' + str(stride) + '-' + str(n_epochs) + '-' + str(learning_rate)
-           + '-categorical_crossentropy' + '.h5')
+
+callback = SaveReconstructions()
+model.fit(x=image_patches, epochs=n_epochs, y=np.array(targets_flat), callbacks=[callback])
+
+# Save -------------------------------------------------------------------------
+model.save(os.path.join(output_dir, 'fitted-model' + '.h5'))
+predictions = model.predict(image_patches)
+save_predictions(predictions, targets[0].shape, patch_size, stride, output_directory=output_dir)
