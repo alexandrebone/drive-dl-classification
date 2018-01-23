@@ -1,7 +1,6 @@
 import os
 import numpy as np
 from PIL import Image
-from sklearn import feature_extraction
 
 
 def load_image(image_path):
@@ -21,7 +20,7 @@ def load_train_database():
              for path in os.listdir(path_to_masks) if path[-3:] == 'gif']
 
     path_to_targets = os.path.join(path_to_train_database, '1st_manual')
-    targets = [load_image(os.path.join(path_to_targets, path))
+    targets = [load_image(os.path.join(path_to_targets, path)) / 255.0
                for path in os.listdir(path_to_targets) if path[-3:] == 'gif']
 
     return images, masks, targets
@@ -109,11 +108,15 @@ def write_image(image_array, path):
     image.save(path)
 
 
-def save_predictions(predictions, patch_size=100, output_directory='outputs'):
+def save_predictions(predictions, image_shape,
+                     patch_size=100, stride=100, number_of_images=20, output_directory='outputs'):
     if not os.path.isdir(output_directory): os.mkdir(output_directory)
-    for k, prediction in enumerate(predictions):
-        write_image(prediction.reshape((patch_size, patch_size)),
-                    os.path.join(output_directory, str(k+1) + 'prediction.jpg'))
+    patches = []
+    for prediction in predictions:
+        patches.append(prediction.reshape((patch_size, patch_size)))
+    reconstructed_images = patches_to_images(np.array(patches), image_shape, patch_size, stride, number_of_images)
+    for k, reconstructed_image in enumerate(reconstructed_images):
+        write_image(reconstructed_image, os.path.join(output_directory, str(k + 1) + '_prediction.jpg'))
 
 
 if __name__ == "__main__":
