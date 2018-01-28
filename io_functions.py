@@ -1,10 +1,11 @@
 import os
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 
-def load_image(image_path):
+def load_image(image_path, blur=False):
     image = Image.open(image_path)
+    if blur: image = image.filter(ImageFilter.GaussianBlur)
     return np.array(image).astype('float64')
 
 
@@ -20,7 +21,7 @@ def load_train_database():
              for path in os.listdir(path_to_masks) if path[-3:] == 'gif']
 
     path_to_targets = os.path.join(path_to_train_database, '1st_manual')
-    targets = [load_image(os.path.join(path_to_targets, path)) / 255.0
+    targets = [load_image(os.path.join(path_to_targets, path), blur=True) / 255.0
                for path in os.listdir(path_to_targets) if path[-3:] == 'gif']
 
     return images, masks, targets
@@ -48,13 +49,20 @@ def load_test_database():
     return images, masks, targets_1, targets_2
 
 
-def compute_mean(images):
+def normalize(images):
+    mean, std = compute_mean_and_std(images)
+    return [(image - mean)/std for image in images]
+
+
+def compute_mean_and_std(images):
     number_of_pixels = float(images[0].shape[0] * images[0].shape[1])
-    return sum([np.sum(np.sum(image, axis=0), axis=0) / number_of_pixels for image in images]) / float(len(images))
+    mean = sum([np.sum(np.sum(image, axis=0), axis=0) / number_of_pixels for image in images]) / float(len(images))
+    std = np.sqrt(np.array(sum([np.sum(np.sum(image ** 2, axis=0), axis=0) / number_of_pixels - mean ** 2 for image in images]) / float(len(images))))
+    return mean, std
 
 
 def remove_mean(images):
-    mean = compute_mean(images)
+    mean, _ = compute_mean_and_std(images)
     return [image - mean for image in images]
 
 
